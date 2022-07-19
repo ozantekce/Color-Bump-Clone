@@ -12,9 +12,46 @@ public class PlayerController : MonoBehaviour
     public float bounds = 5;
 
 
+    private CameraMovement cameraMovement;
+
     void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();
+    }
+
+
+    private void Update()
+    {
+
+
+        //transform.position = new Vector3(Mathf.Clamp(transform.position.x,-bounds,bounds),transform.position.y,transform.position.z);
+        ControlBounds();
+        FollowCamera();
+    }
+
+    private void FollowCamera()
+    {
+        if(cameraMovement == null)
+        {
+            cameraMovement = FindObjectOfType<CameraMovement>();
+        }
+        transform.position += cameraMovement.camVel;
+
+    }
+
+    private void ControlBounds()
+    {
+        float x = transform.position.x;
+
+        if(x > bounds)
+        {
+            transform.position = new Vector3(bounds, transform.position.y, transform.position.z);
+        }
+        else if(x < -bounds)
+        {
+            transform.position = new Vector3(-bounds, transform.position.y, transform.position.z);
+        }
+
     }
 
 
@@ -36,6 +73,8 @@ public class PlayerController : MonoBehaviour
             rigidbody.AddForce((-moveForce * sensitivity) - (rigidbody.velocity / 5f), ForceMode.VelocityChange);
 
         }
+
+        rigidbody.velocity.Normalize();
 
     }
 
