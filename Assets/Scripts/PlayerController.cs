@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,14 +9,18 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rigidbody;
     private Vector3 lastMousePos;
     public float sensitivity = 0.16f, clampDelta = 42f;
-
     public float bounds = 5;
 
+    private bool canMove;
+    private bool gameOver;
 
     private CameraMovement cameraMovement;
 
+    public bool CanMove { get => canMove; set => canMove = value; }
+
     void Awake()
     {
+        Application.targetFrameRate = 60;
         rigidbody = GetComponent<Rigidbody>();
     }
 
@@ -23,10 +28,30 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
 
-
-        //transform.position = new Vector3(Mathf.Clamp(transform.position.x,-bounds,bounds),transform.position.y,transform.position.z);
         ControlBounds();
-        FollowCamera();
+        if (canMove)
+        {
+            FollowCamera();
+        }
+
+
+        if (!canMove&&!gameOver)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                canMove = true;
+            }
+        }
+
+
+        if(!canMove && gameOver)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+        }
+
     }
 
     private void FollowCamera()
@@ -63,18 +88,49 @@ public class PlayerController : MonoBehaviour
             lastMousePos = Input.mousePosition;
         }
 
-        if (Input.GetMouseButton(0))
+        if (canMove)
         {
-            Vector3 vector = lastMousePos - Input.mousePosition;
-            lastMousePos = Input.mousePosition;
-            vector = new Vector3(vector.x, 0, vector.y);
+            if (Input.GetMouseButton(0))
+            {
+                Vector3 vector = lastMousePos - Input.mousePosition;
+                lastMousePos = Input.mousePosition;
+                vector = new Vector3(vector.x, 0, vector.y);
 
-            Vector3 moveForce = Vector3.ClampMagnitude(vector,clampDelta);
-            rigidbody.AddForce((-moveForce * sensitivity) - (rigidbody.velocity / 5f), ForceMode.VelocityChange);
-
+                Vector3 moveForce = Vector3.ClampMagnitude(vector, clampDelta);
+                rigidbody.AddForce((-moveForce * sensitivity) - (rigidbody.velocity / 5f), ForceMode.VelocityChange);
+            }
         }
 
+
+
         rigidbody.velocity.Normalize();
+
+    }
+
+
+    private void GameOver()
+    {
+        canMove = false;
+        gameOver = true;
+        GetComponent<MeshRenderer>().enabled = false;
+        GetComponent<Collider>().enabled = false;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            GameOver();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("Finish"))
+        {
+            //
+            GameOver();
+        }
 
     }
 
