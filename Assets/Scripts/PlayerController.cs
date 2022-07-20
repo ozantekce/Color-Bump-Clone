@@ -128,8 +128,12 @@ public class PlayerController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Finish"))
         {
-            //
-            GameOver();
+            int buildIndex = SceneManager.GetActiveScene().buildIndex;
+            Debug.Log(buildIndex+" "+SceneManager.sceneCountInBuildSettings);
+            if (buildIndex < (SceneManager.sceneCountInBuildSettings-1))
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+            else
+                SceneManager.LoadScene(0);
         }
 
     }
