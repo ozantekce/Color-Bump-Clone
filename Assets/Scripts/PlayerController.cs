@@ -9,10 +9,12 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rigidbody;
     private Vector3 lastMousePos;
     public float sensitivity = 0.16f, clampDelta = 42f;
-    public float bounds = 5;
+    public float bounds = 5 ;
 
     private bool canMove;
     private bool gameOver;
+
+    
 
     private CameraMovement cameraMovement;
 
@@ -40,6 +42,7 @@ public class PlayerController : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
             {
                 canMove = true;
+                GameManager.Instance.RemoveUI();
             }
         }
 
@@ -49,6 +52,8 @@ public class PlayerController : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                Time.timeScale = 1f;
+                Time.fixedDeltaTime = Time.timeScale * 0.02f;
             }
         }
 
@@ -110,6 +115,22 @@ public class PlayerController : MonoBehaviour
 
     private void GameOver()
     {
+
+        
+        GameObject shatterShpere =  GameObject.Instantiate(GameManager.Instance.breakablePlayer,transform.position,Quaternion.identity);
+
+        foreach(Transform child in shatterShpere.transform)
+        {
+            Rigidbody rb = child.GetComponent<Rigidbody>();
+            rb.isKinematic = false;
+            rb.AddExplosionForce(6f, transform.position, 0.6f, 0.6f, ForceMode.VelocityChange);
+        }
+
+        rigidbody.isKinematic = true;
+
+        Time.timeScale = 0.5f;
+        Time.fixedDeltaTime = Time.timeScale * 0.02f;
+
         canMove = false;
         gameOver = true;
         GetComponent<MeshRenderer>().enabled = false;
@@ -120,7 +141,8 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            GameOver();
+            if(!gameOver)
+                GameOver();
         }
     }
 
